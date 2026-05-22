@@ -1,0 +1,34 @@
+name: research-radar-hub
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    extra_hosts:
+      - "api.github.com:host-gateway"
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - backend-data:/app/data
+      - ./cache:/app/cache
+      - ./reports:/app/reports
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_PROXY_BASE: http://backend:8000
+    environment:
+      NEXT_PUBLIC_API_PROXY_BASE: http://backend:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  backend-data:

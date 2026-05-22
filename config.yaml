@@ -1,0 +1,278 @@
+database:
+  url: "sqlite:///data/open_data_hub.db"
+  echo: false
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins:
+    - "http://localhost:3000"
+
+cache:
+  enabled: true
+  directory: "cache"
+  default_ttl_seconds: 3600
+
+compliance:
+  user_agent: "OpenDataHub/1.0 (public low-frequency research monitor; contact configurable)"
+  respect_robots_txt: true
+  max_body_bytes: 1048576
+
+arxiv:
+  enabled: true
+  robots_required: false
+  default_categories:
+    - "gr-qc"
+    - "hep-th"
+    - "cs.RO"
+    - "cs.CR"
+    - "cs.AI"
+    - "cs.LG"
+    - "stat.ML"
+    - "hep-ph"
+    - "cond-mat.mes-hall"
+    - "astro-ph.CO"
+  max_results_per_query: 25
+  rate_limit:
+    request_delay_seconds: 5.0
+    max_concurrent: 1
+    burst_limit: 5
+    burst_window_seconds: 60
+  retry:
+    max_retries: 3
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+github:
+  enabled: true
+  robots_required: false
+  default_languages:
+    - "Python"
+    - "TypeScript"
+    - "Rust"
+    - "C++"
+  min_stars: 50
+  max_results_per_query: 20
+  rate_limit:
+    request_delay_seconds: 1.0
+    max_concurrent: 1
+    burst_limit: 10
+    burst_window_seconds: 60
+  retry:
+    max_retries: 3
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+hackernews:
+  enabled: true
+  robots_required: false
+  story_types:
+    - "top"
+    - "best"
+    - "new"
+  max_stories_per_fetch: 100
+  rate_limit:
+    request_delay_seconds: 0.5
+    max_concurrent: 1
+    burst_limit: 30
+    burst_window_seconds: 60
+  retry:
+    max_retries: 3
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+school_notices:
+  enabled: true
+  robots_required: true
+  sources: []
+  # Add public notice pages here after confirming access is allowed:
+  # - id: "example-school"
+  #   name: "Example School Notices"
+  #   url: "https://example.edu/notices/"
+  #   selector: "a"
+  #   keywords: ["招生", "考试", "研究生"]
+  #   robots_required: true
+  rate_limit:
+    request_delay_seconds: 3.0
+    max_concurrent: 1
+    burst_limit: 5
+    burst_window_seconds: 60
+  retry:
+    max_retries: 3
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+website_changes:
+  enabled: true
+  robots_required: true
+  pages: []
+  # Add public pages here after confirming access is allowed:
+  # - name: "Example Page"
+  #   url: "https://example.edu/"
+  #   selector: "main"
+  #   render: false
+  #   enabled: true
+  rate_limit:
+    request_delay_seconds: 3.0
+    max_concurrent: 1
+    burst_limit: 5
+    burst_window_seconds: 60
+  retry:
+    max_retries: 3
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+cve:
+  enabled: true
+  robots_required: false
+  sources:
+    - "nvd"
+    - "cisa_kev"
+  severity_min: "MEDIUM"
+  days_back: 2
+  max_results_per_query: 100
+  rate_limit:
+    request_delay_seconds: 6.0
+    max_concurrent: 1
+    burst_limit: 5
+    burst_window_seconds: 60
+  retry:
+    max_retries: 2
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+research_radar:
+  enabled: true
+  lookback_days: 2
+  max_items_per_topic_source: 5
+  min_score: 1.0
+  llm_max_items_per_report: 2
+  output_directory: "reports/research_radar"
+  topics:
+    gr_qft:
+      name: "GR/QFT"
+      categories:
+        - "gr-qc"
+        - "hep-th"
+      keywords:
+        - "quantum gravity"
+        - "general relativity"
+        - "qft"
+        - "holography"
+        - "physics"
+    ai_engineering:
+      name: "AI for Engineering"
+      categories:
+        - "cs.AI"
+        - "cs.LG"
+        - "stat.ML"
+      keywords:
+        - "surrogate modeling"
+        - "pinn"
+        - "digital twin"
+        - "simulation ai"
+        - "machine learning"
+        - "computer science"
+        - "artificial intelligence"
+    cae:
+      name: "CAE"
+      categories: []
+      keywords:
+        - "finite element"
+        - "computational mechanics"
+        - "topology optimization"
+        - "multiphysics"
+        - "engineering"
+        - "computational engineering"
+    robotics:
+      name: "Robotics"
+      categories:
+        - "cs.RO"
+      keywords:
+        - "robot learning"
+        - "motion planning"
+        - "slam"
+        - "manipulation"
+    cybersecurity:
+      name: "Cybersecurity"
+      categories:
+        - "cs.CR"
+      keywords:
+        - "vulnerability"
+        - "malware"
+        - "fuzzing"
+        - "secure systems"
+
+course_radar:
+  enabled: true
+  sources:
+    - id: "mit-ocw-search"
+      institution: "MIT OpenCourseWare"
+      url: "https://ocw.mit.edu/search/"
+      kind: "html"
+      selector: "a"
+      keywords:
+        - "quantum"
+        - "relativity"
+        - "field theory"
+        - "robot"
+        - "robotics"
+        - "engineering"
+        - "finite element"
+        - "cybersecurity"
+        - "security"
+        - "machine learning"
+      department: null
+      level: null
+      robots_required: true
+      enabled: true
+    - id: "eth-course-catalogue"
+      institution: "ETH Zurich"
+      url: "https://www.vorlesungen.ethz.ch/Vorlesungsverzeichnis/sucheLehrangebot.view?lang=en"
+      kind: "html"
+      selector: "a"
+      keywords:
+        - "quantum"
+        - "relativity"
+        - "robot"
+        - "robotics"
+        - "engineering"
+        - "finite element"
+        - "cyber security"
+        - "machine learning"
+      department: null
+      level: null
+      robots_required: true
+      enabled: true
+    - id: "cambridge-undergraduate-courses"
+      institution: "University of Cambridge"
+      url: "https://www.undergraduate.study.cam.ac.uk/courses"
+      kind: "html"
+      selector: "a"
+      keywords:
+        - "engineering"
+        - "computer science"
+        - "natural sciences"
+        - "mathematics"
+        - "physics"
+      department: null
+      level: "undergraduate"
+      robots_required: true
+      enabled: true
+  rate_limit:
+    request_delay_seconds: 3.0
+    max_concurrent: 1
+    burst_limit: 5
+    burst_window_seconds: 60
+  retry:
+    max_retries: 3
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+  robots_required: true
