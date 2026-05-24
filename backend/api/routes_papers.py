@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from backend.api.deps import get_db
-from backend.api.schemas import PaperListResponse, PaperResponse
+from backend.api.schemas import PaperListResponse, PaperResponse, PaperUnderstandingResponse
 from backend.repositories.paper_repo import PaperRepository
+from backend.services.paper_understanding import analyze_paper_by_id
 
 router = APIRouter(tags=["papers"])
 
@@ -41,3 +42,16 @@ async def list_papers(
         offset=offset,
         limit=limit,
     )
+
+
+@router.post("/api/v1/papers/{paper_id}/understanding", response_model=PaperUnderstandingResponse)
+async def analyze_paper_understanding(
+    paper_id: int,
+    allow_pdf: bool | None = Query(None),
+    db: Session = Depends(get_db),
+) -> PaperUnderstandingResponse:
+    try:
+        result = analyze_paper_by_id(db, paper_id, allow_pdf=allow_pdf)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return PaperUnderstandingResponse.model_validate(result)

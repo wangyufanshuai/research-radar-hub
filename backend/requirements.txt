@@ -15,4 +15,5 @@ lxml>=5.0
 feedparser>=6.0
 python-dateutil>=2.9
 markdown>=3.6
+pypdf>=4.0
 pytest>=8.0

@@ -10,6 +10,10 @@ import type {
   CollectSource,
   CollectResponse,
   DailyReport,
+  PaperUnderstanding,
+  ScientistTask,
+  ScientistTaskDetail,
+  ScientistTaskList,
 } from "./types";
 
 const API_BASE = "/api/v1";
@@ -98,6 +102,10 @@ export async function fetchPapers(query: PapersQuery = {}): Promise<PapersRespon
     offset: data.offset,
     limit: data.limit,
   };
+}
+
+export async function analyzePaperUnderstanding(paperId: number, allowPdf = false): Promise<PaperUnderstanding> {
+  return apiPost<PaperUnderstanding>(`/papers/${paperId}/understanding`, { allow_pdf: allowPdf });
 }
 
 // ---- Repos API ----
@@ -190,4 +198,40 @@ export async function fetchResearchReport(refresh = false): Promise<DailyReport>
 
 export async function triggerCollect(source: CollectSource): Promise<CollectResponse> {
   return apiPost<CollectResponse>(`/collect/${source}`, { incremental: true });
+}
+
+// ---- AI Scientist API ----
+
+export async function createScientistTask(topic: string, use_llm = true): Promise<ScientistTask> {
+  const response = await fetch(`${API_BASE}/scientist/tasks`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ topic, max_papers: 20, max_repos: 10, use_llm }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => response.statusText);
+    throw new ApiError(message, response.status);
+  }
+
+  return response.json() as Promise<ScientistTask>;
+}
+
+export async function runScientistTask(
+  taskId: number,
+  options: { max_papers?: number; max_repos?: number; use_llm?: boolean } = {},
+): Promise<ScientistTaskDetail> {
+  return apiPost<ScientistTaskDetail>(`/scientist/tasks/${taskId}/run`, {
+    max_papers: options.max_papers ?? 20,
+    max_repos: options.max_repos ?? 10,
+    use_llm: options.use_llm ?? true,
+  });
+}
+
+export async function fetchScientistTask(taskId: number): Promise<ScientistTaskDetail> {
+  return apiGet<ScientistTaskDetail>(`${API_BASE}/scientist/tasks/${taskId}`);
+}
+
+export async function fetchScientistTasks(offset = 0, limit = 10): Promise<ScientistTaskList> {
+  return apiGet<ScientistTaskList>(`${API_BASE}/scientist/tasks`, { offset, limit });
 }

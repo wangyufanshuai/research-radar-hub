@@ -35,6 +35,28 @@ class PaperListResponse(BaseModel):
     limit: int
 
 
+class PaperUnderstandingResponse(BaseModel):
+    id: int
+    paper_id: int | None = None
+    source: str
+    source_id: str
+    title: str
+    url: str | None = None
+    pdf_url: str | None = None
+    text_excerpt: str | None = None
+    formula_candidates: str | None = None
+    dataset_mentions: str | None = None
+    code_mentions: str | None = None
+    citation_mentions: str | None = None
+    metric_mentions: str | None = None
+    understanding_status: str
+    error_message: str | None = None
+    analyzed_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # --- Repo ---
 
 
@@ -227,6 +249,88 @@ class EmailReportResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# --- AI Scientist ---
+
+
+class ScientistTaskCreate(BaseModel):
+    topic: str = Field(..., min_length=3, max_length=500)
+    max_papers: int = Field(20, ge=1, le=50)
+    max_repos: int = Field(10, ge=1, le=30)
+    use_llm: bool = True
+
+
+class ScientistTaskResponse(BaseModel):
+    id: int
+    topic: str
+    status: str
+    query: str | None = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ScientistTaskItemResponse(BaseModel):
+    id: int
+    task_id: int
+    source: str
+    source_id: str
+    title: str
+    url: str | None = None
+    summary: str | None = None
+    relevance_score: float
+    novelty_score: float
+    reproducibility_score: float
+    selected: bool
+    understanding: PaperUnderstandingResponse | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ScientistArtifactResponse(BaseModel):
+    id: int
+    task_id: int
+    kind: str
+    title: str
+    body_markdown: str
+    html_path: str | None = None
+    created_at_artifact: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ScientistRunResponse(BaseModel):
+    id: int
+    task_id: int
+    stage: str
+    status: str
+    started_at: datetime
+    finished_at: datetime | None = None
+    message: str | None = None
+    error_message: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ScientistTaskDetailResponse(ScientistTaskResponse):
+    items: list[ScientistTaskItemResponse] = []
+    artifacts: list[ScientistArtifactResponse] = []
+    runs: list[ScientistRunResponse] = []
+
+
+class ScientistTaskListResponse(BaseModel):
+    items: list[ScientistTaskResponse]
+    total: int
+    offset: int
+    limit: int
 
 
 # --- Analysis ---

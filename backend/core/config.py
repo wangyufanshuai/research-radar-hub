@@ -149,6 +149,44 @@ class CourseRadarConfig(BaseModel):
     robots_required: bool = True
 
 
+class NasaEndpointConfig(BaseModel):
+    enabled: bool = True
+    base_url: str
+    max_results_per_query: int = 20
+
+
+class NasaConfig(BaseModel):
+    enabled: bool = True
+    ntrs: NasaEndpointConfig = NasaEndpointConfig(
+        base_url="https://ntrs.nasa.gov/api/citations/search"
+    )
+    techport: NasaEndpointConfig = NasaEndpointConfig(
+        enabled=False,
+        base_url="https://techport.nasa.gov/api/projects/search"
+    )
+    rate_limit: CollectorRateLimit = CollectorRateLimit(request_delay_seconds=3.0)
+    retry: CollectorRetry = CollectorRetry(max_retries=2)
+    robots_required: bool = False
+
+
+class AdsConfig(BaseModel):
+    enabled: bool = False
+    base_url: str = "https://api.adsabs.harvard.edu/v1/search/query"
+    max_results_per_query: int = 20
+    rate_limit: CollectorRateLimit = CollectorRateLimit(request_delay_seconds=3.0)
+    retry: CollectorRetry = CollectorRetry(max_retries=2)
+    robots_required: bool = False
+
+
+class PaperUnderstandingConfig(BaseModel):
+    enabled: bool = True
+    download_pdfs: bool = False
+    max_pdf_bytes: int = 5_000_000
+    max_pdf_pages: int = 5
+    timeout_seconds: int = 20
+    text_excerpt_chars: int = 6_000
+
+
 class DatabaseConfig(BaseModel):
     url: str = "sqlite:///data/open_data_hub.db"
     echo: bool = False
@@ -173,6 +211,9 @@ class AppConfig(BaseModel):
     cve: CVEConfig = CVEConfig()
     research_radar: ResearchRadarConfig = ResearchRadarConfig()
     course_radar: CourseRadarConfig = CourseRadarConfig()
+    nasa: NasaConfig = NasaConfig()
+    ads: AdsConfig = AdsConfig()
+    paper_understanding: PaperUnderstandingConfig = PaperUnderstandingConfig()
 
 
 class Secrets(BaseSettings):
@@ -186,6 +227,8 @@ class Secrets(BaseSettings):
     smtp_password: str = ""
     email_from: str = ""
     email_to: str = ""
+    ads_api_token: str = ""
+    techport_api_token: str = ""
 
     class Config:
         env_file = ".env"

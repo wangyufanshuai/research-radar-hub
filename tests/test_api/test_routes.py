@@ -196,7 +196,7 @@ class TestCollectArxiv:
         from pathlib import Path
 
         text = Path("frontend/src/lib/types.ts").read_text(encoding="utf-8")
-        assert '"arxiv" | "github" | "hn" | "course" | "all"' in text
+        assert '"arxiv" | "github" | "hn" | "course" | "nasa" | "all"' in text
         assert '"papers" | "repos" | "stories"' not in text
 
 

@@ -13,6 +13,7 @@ Research Radar Hub collects and organizes public signals from:
 
 - arXiv papers
 - GitHub public repositories
+- NASA NTRS/TechPort public research and technology metadata
 - official course pages such as MIT OCW, ETH Zurich, and Cambridge
 - Hacker News stories
 - CVE/NVD/CISA security metadata
@@ -35,6 +36,9 @@ Screenshots are intentionally left out of the first source release. After runnin
 ## Features
 
 - **Daily research radar**: grouped Markdown/HTML reports with papers, repositories, and courses.
+- **AI Scientist Workspace**: staged topic research workflow with novelty scoring, reading routes, and reproduction plans.
+- **Paper Understanding**: safe metadata-first extraction of formulas, datasets, code links, metrics, and citation clues.
+- **NASA source pack**: NASA NTRS public metadata by default, with optional TechPort and ADS integration.
 - **arXiv collector**: category-based public API collection with polite request sizes and delays.
 - **GitHub collector**: public Search REST API collection with optional `GITHUB_PAT` for higher rate limits.
 - **Course radar**: low-frequency collection from official public course pages and RSS/HTML sources.
@@ -61,9 +65,9 @@ flowchart LR
 
 Main components:
 
-- `backend/collectors/`: arXiv, GitHub, course, HN, CVE, and website collectors.
+- `backend/collectors/`: arXiv, GitHub, NASA, course, HN, CVE, and website collectors.
 - `backend/models/`: SQLAlchemy models.
-- `backend/services/`: collection orchestration, report generation, email delivery, and research radar analysis.
+- `backend/services/`: collection orchestration, report generation, email delivery, paper understanding, and research radar analysis.
 - `backend/api/`: FastAPI routes and response schemas.
 - `frontend/`: Next.js dashboard.
 - `tests/`: pytest coverage for repositories, collectors, API routes, and research radar behavior.
@@ -89,6 +93,7 @@ Open:
 
 - Dashboard: <http://localhost:3000>
 - Research Radar page: <http://localhost:3000/radar>
+- AI Scientist page: <http://localhost:3000/scientist>
 - Backend API docs: <http://localhost:8001/docs>
 - Backend health check: <http://localhost:8001/api/v1/health>
 
@@ -106,6 +111,8 @@ Copy `.env.example` to `.env` and fill only the values you need.
 
 ```env
 GITHUB_PAT=
+ADS_API_TOKEN=
+TECHPORT_API_TOKEN=
 
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com/v1
@@ -124,6 +131,8 @@ NEXT_PUBLIC_API_PROXY_BASE=http://backend:8000
 Secrets:
 
 - `GITHUB_PAT`: optional. Raises GitHub public API rate limits. No special scopes are required for public repository search.
+- `ADS_API_TOKEN`: optional. Enables SAO/NASA ADS literature search when `ads.enabled=true`.
+- `TECHPORT_API_TOKEN`: optional. Enables NASA TechPort when `nasa.techport.enabled=true`.
 - `OPENAI_API_KEY`: optional. Enables LLM summaries.
 - `OPENAI_BASE_URL`: optional. Use this for OpenAI-compatible providers such as SiliconFlow.
 - `OPENAI_MODEL`: optional. Model name for report summarization.
@@ -205,6 +214,7 @@ Collect one source:
 python -m backend.scripts.collect --source arxiv --incremental
 python -m backend.scripts.collect --source github --incremental
 python -m backend.scripts.collect --source course --incremental
+python -m backend.scripts.collect --source nasa --incremental
 ```
 
 Collect every registered source:
@@ -225,14 +235,28 @@ Generate and send a Research Radar email:
 python -m backend.scripts.research_radar --collect --send
 ```
 
+Run an AI Scientist topic workspace:
+
+```bash
+python -m backend.scripts.ai_scientist --topic "neural operator for relativistic hydrodynamics" --run
+```
+
+Analyze recent papers and NASA items without executing any external code:
+
+```bash
+python -m backend.scripts.paper_understanding --limit 20
+```
+
 Docker API examples:
 
 ```bash
 curl -X POST "http://localhost:8001/api/v1/collect/arxiv?incremental=false"
 curl -X POST "http://localhost:8001/api/v1/collect/github?incremental=false"
 curl -X POST "http://localhost:8001/api/v1/collect/course?incremental=false"
+curl -X POST "http://localhost:8001/api/v1/collect/nasa?incremental=false"
 curl "http://localhost:8001/api/v1/reports/daily?kind=research&refresh=true"
 curl -X POST "http://localhost:8001/api/v1/reports/daily/send?kind=research&refresh=false"
+curl -X POST "http://localhost:8001/api/v1/papers/1/understanding?allow_pdf=false"
 ```
 
 ## API Overview
@@ -242,11 +266,16 @@ Useful endpoints:
 - `GET /api/v1/health`
 - `POST /api/v1/collect/{source}`
 - `GET /api/v1/papers`
+- `POST /api/v1/papers/{id}/understanding`
 - `GET /api/v1/repos`
 - `GET /api/v1/stories`
 - `GET /api/v1/radar/courses`
 - `GET /api/v1/reports/daily?kind=research&refresh=true`
 - `POST /api/v1/reports/daily/send?kind=research`
+- `POST /api/v1/scientist/tasks`
+- `POST /api/v1/scientist/tasks/{task_id}/run`
+- `GET /api/v1/scientist/tasks/{task_id}`
+- `GET /api/v1/scientist/tasks/{task_id}/report`
 
 Supported collection sources include:
 
@@ -254,6 +283,7 @@ Supported collection sources include:
 - `github`
 - `hn`
 - `course`
+- `nasa`
 - `school`
 - `cve`
 - `website`
@@ -294,6 +324,9 @@ docker compose exec -T backend python -m backend.scripts.research_radar --collec
 | --- | --- | --- | --- |
 | arXiv | Papers | No | Uses the public arXiv API with small page sizes. |
 | GitHub | Repositories | Optional PAT | Uses public Search REST API. |
+| NASA NTRS | Research metadata | No | Uses public NASA STI/NTRS metadata and links. |
+| NASA TechPort | Technology projects | Optional token | Disabled by default unless configured. |
+| SAO/NASA ADS | Literature metadata | Optional token | Disabled by default unless configured. |
 | MIT OCW | Courses | No | Uses official public pages where accessible. |
 | ETH Zurich | Courses | No | Respects robots.txt; inaccessible pages are skipped. |
 | Cambridge | Courses | No | Uses official public course pages. |
@@ -307,7 +340,8 @@ Research Radar Hub is intentionally conservative:
 
 - Collects public metadata and public page snippets only.
 - Does not bypass login walls, paywalls, CAPTCHA, or access controls.
-- Does not download course PDFs, videos, lecture files, or full paper PDFs.
+- Does not download course PDFs, videos, or lecture files.
+- Paper PDF extraction is disabled by default and, when enabled, is limited by size, page count, timeout, and public URLs only.
 - Respects robots.txt for HTML/page sources by default.
 - Uses rate limits and retry controls in `config.yaml`.
 - Stores all runtime data locally.
@@ -376,6 +410,7 @@ The Compose file stores SQLite in a Docker named volume instead of a Windows bin
 - Never commit `.env`.
 - Rotate any API key or SMTP password that has been pasted into chat, logs, screenshots, or issue comments.
 - Keep `OPENAI_API_KEY`, `GITHUB_PAT`, and SMTP credentials in environment variables only.
+- Keep `ADS_API_TOKEN` and `TECHPORT_API_TOKEN` in environment variables only.
 - Generated reports may contain private reading interests; `reports/` is ignored by git.
 - SQLite databases, cache files, and virtual environments are ignored by git.
 
@@ -396,15 +431,15 @@ docker-compose.yml
 Near-term:
 
 - richer Research Radar dashboard filters
-- topic-specific GitHub search queries
-- better course-source normalization
+- richer Paper Understanding with citation graph scoring
+- NASA source normalization and ADS search presets
 - digest preview before sending
 - export to Markdown and JSON
 
 Later:
 
 - personal knowledge graph
-- citation and author tracking
+- safe reviewed experiment notebooks
 - GitHub Actions scheduled digests
 - Zotero or reference-manager integration
 - multi-user deployment mode

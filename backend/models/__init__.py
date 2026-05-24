@@ -9,9 +9,12 @@ from backend.models.watched_page import WatchedPage
 from backend.models.page_snapshot import PageSnapshot
 from backend.models.cve_item import CVEItem
 from backend.models.course_item import CourseItem
+from backend.models.nasa_item import NasaItem
 from backend.models.daily_report import DailyReport
 from backend.models.email_report import EmailReport
 from backend.models.radar_item import RadarItem
+from backend.models.scientist import ScientistArtifact, ScientistRun, ScientistTask, ScientistTaskItem
+from backend.models.paper_understanding import PaperUnderstanding
 
 __all__ = [
     "TimestampMixin",
@@ -27,7 +30,13 @@ __all__ = [
     "PageSnapshot",
     "CVEItem",
     "CourseItem",
+    "NasaItem",
     "DailyReport",
     "EmailReport",
     "RadarItem",
+    "ScientistTask",
+    "ScientistTaskItem",
+    "ScientistArtifact",
+    "ScientistRun",
+    "PaperUnderstanding",
 ]

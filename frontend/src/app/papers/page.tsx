@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { fetchPapers } from "@/lib/api";
+import { analyzePaperUnderstanding, fetchPapers } from "@/lib/api";
 import type { Paper, PapersResponse } from "@/lib/types";
 
 const ARXIV_CATEGORIES = [
@@ -25,6 +25,7 @@ export default function PapersPage() {
   const [searchInput, setSearchInput] = useState("");
   const [category, setCategory] = useState("");
   const [offset, setOffset] = useState(0);
+  const [analysisStatus, setAnalysisStatus] = useState<Record<number, string>>({});
   const limit = 20;
 
   const loadPapers = useCallback(async () => {
@@ -61,6 +62,19 @@ export default function PapersPage() {
   function handleNext() {
     if (data && offset + limit < data.total) {
       setOffset((prev) => prev + limit);
+    }
+  }
+
+  async function handleAnalyze(paper: Paper) {
+    setAnalysisStatus((current) => ({ ...current, [paper.id]: "Analyzing..." }));
+    try {
+      const result = await analyzePaperUnderstanding(paper.id, false);
+      setAnalysisStatus((current) => ({ ...current, [paper.id]: result.understanding_status }));
+    } catch (err) {
+      setAnalysisStatus((current) => ({
+        ...current,
+        [paper.id]: err instanceof Error ? err.message : "Analysis failed",
+      }));
     }
   }
 
@@ -156,6 +170,14 @@ export default function PapersPage() {
                         arXiv: {paper.arxiv_id}
                       </span>
                     </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <button className="btn-secondary" onClick={() => handleAnalyze(paper)}>
+                      Analyze
+                    </button>
+                    {analysisStatus[paper.id] && (
+                      <p className="mt-2 max-w-40 text-xs text-gray-500">{analysisStatus[paper.id]}</p>
+                    )}
                   </div>
                 </div>
               </article>

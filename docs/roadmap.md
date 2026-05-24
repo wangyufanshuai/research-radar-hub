@@ -1,9 +1,20 @@
 # Roadmap
 
-## v4 Candidates
+## v4
 
-- Full Research Radar dashboard with topic filters, report preview, source health, and email status.
+- AI Scientist Workspace MVP with topic tasks, staged agents, novelty scoring, reading routes, and reproduction-plan reports.
+- Research Radar dashboard improvements with richer report previews and source health.
+
+## v5
+
+- Paper Understanding Pipeline with safe metadata-first signal extraction, optional bounded public PDF text extraction, formula candidates, dataset/code/metric/citation clues.
+- NASA source pack with NTRS by default, optional TechPort and ADS token-based integrations, and AI Scientist report enrichment.
+
+## v6
+
+- Citation graph scoring, author/institution tracking, physics forum source packs, and school website source packs.
 - Personal knowledge graph linking papers, repos, courses, authors, methods, and institutions.
-- GitHub Actions mode for scheduled collection and email delivery in forked repositories.
-- Better LLM provider abstraction and local embedding-based clustering.
-- Export formats for Markdown, HTML, JSON, and newsletter archives.
+
+## v7
+
+- Safe experiment workspace with reviewed notebooks, sandboxed execution, and experiment logs.

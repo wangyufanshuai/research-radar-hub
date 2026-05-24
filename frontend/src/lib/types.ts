@@ -11,6 +11,25 @@ export interface Paper {
   url: string;
 }
 
+export interface PaperUnderstanding {
+  id: number;
+  paper_id?: number | null;
+  source: string;
+  source_id: string;
+  title: string;
+  url?: string | null;
+  pdf_url?: string | null;
+  text_excerpt?: string | null;
+  formula_candidates?: string | null;
+  dataset_mentions?: string | null;
+  code_mentions?: string | null;
+  citation_mentions?: string | null;
+  metric_mentions?: string | null;
+  understanding_status: string;
+  error_message?: string | null;
+  analyzed_at: string;
+}
+
 export interface PapersResponse {
   papers: Paper[];
   total: number;
@@ -113,7 +132,7 @@ export interface DailyReport {
 
 // ---- Collect ----
 
-export type CollectSource = "arxiv" | "github" | "hn" | "course" | "all";
+export type CollectSource = "arxiv" | "github" | "hn" | "course" | "nasa" | "all";
 
 export interface CollectResponse {
   source: string;
@@ -123,4 +142,66 @@ export interface CollectResponse {
   records_updated: number;
   duration_secs: number;
   error?: string | null;
+}
+
+// ---- AI Scientist ----
+
+export interface ScientistTask {
+  id: number;
+  topic: string;
+  status: string;
+  query?: string | null;
+  completed_at?: string | null;
+  error_message?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScientistTaskItem {
+  id: number;
+  task_id: number;
+  source: "arxiv" | "github" | string;
+  source_id: string;
+  title: string;
+  url?: string | null;
+  summary?: string | null;
+  relevance_score: number;
+  novelty_score: number;
+  reproducibility_score: number;
+  selected: boolean;
+  understanding?: PaperUnderstanding | null;
+}
+
+export interface ScientistRun {
+  id: number;
+  task_id: number;
+  stage: string;
+  status: string;
+  started_at: string;
+  finished_at?: string | null;
+  message?: string | null;
+  error_message?: string | null;
+}
+
+export interface ScientistArtifact {
+  id: number;
+  task_id: number;
+  kind: string;
+  title: string;
+  body_markdown: string;
+  html_path?: string | null;
+  created_at_artifact: string;
+}
+
+export interface ScientistTaskDetail extends ScientistTask {
+  items: ScientistTaskItem[];
+  artifacts: ScientistArtifact[];
+  runs: ScientistRun[];
+}
+
+export interface ScientistTaskList {
+  items: ScientistTask[];
+  total: number;
+  offset: number;
+  limit: number;
 }

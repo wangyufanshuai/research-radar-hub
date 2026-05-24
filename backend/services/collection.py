@@ -11,6 +11,7 @@ from backend.collectors.cve_collector import CVECollector
 from backend.collectors.course_collector import CourseCollector
 from backend.collectors.github_collector import GitHubCollector
 from backend.collectors.hn_collector import HNCollector
+from backend.collectors.nasa_collector import AdsCollector, NasaCollector
 from backend.collectors.school_notice_collector import SchoolNoticeCollector
 from backend.collectors.website_change_collector import WebsiteChangeCollector
 from backend.models.fetch_log import FetchLog
@@ -19,6 +20,7 @@ from backend.repositories.cve_repo import CVERepository
 from backend.repositories.course_item_repo import CourseItemRepository
 from backend.repositories.fetch_log_repo import FetchLogRepository
 from backend.repositories.notice_repo import NoticeRepository
+from backend.repositories.nasa_item_repo import NasaItemRepository
 from backend.repositories.paper_repo import PaperRepository
 from backend.repositories.repo_repo import RepoRepository
 from backend.repositories.story_repo import StoryRepository
@@ -32,6 +34,8 @@ COLLECTORS: dict[str, tuple[type, type | None, str | None]] = {
     "school": (SchoolNoticeCollector, NoticeRepository, "url"),
     "cve": (CVECollector, CVERepository, "cve_id"),
     "course": (CourseCollector, CourseItemRepository, "url"),
+    "nasa": (NasaCollector, NasaItemRepository, "source_id"),
+    "ads": (AdsCollector, NasaItemRepository, "source_id"),
     "website": (WebsiteChangeCollector, None, None),
 }
 
@@ -69,6 +73,9 @@ def collect_source(db: Session, source: str, incremental: bool = False) -> dict[
 
         if source == "website":
             new_count, updated_count = _save_website_items(db, items)
+        elif source in {"nasa", "ads"}:
+            repo = NasaItemRepository(db)
+            new_count, updated_count = repo.upsert_items(items)
         else:
             repo = repo_class(db)  # type: ignore[misc]
             new_count, updated_count = repo.bulk_upsert(upsert_field, items)  # type: ignore[arg-type]
@@ -156,6 +163,8 @@ def _legacy_entry(source: str, collector_class: type) -> tuple[type, type | None
         "school": (NoticeRepository, "url"),
         "cve": (CVERepository, "cve_id"),
         "course": (CourseItemRepository, "url"),
+        "nasa": (NasaItemRepository, "source_id"),
+        "ads": (NasaItemRepository, "source_id"),
         "website": (None, None),
     }
     repo_class, upsert_field = repo_map[source]

@@ -49,7 +49,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {(["arxiv", "github", "hn", "course", "all"] as CollectSource[]).map((source) => (
+          {(["arxiv", "github", "hn", "course", "nasa", "all"] as CollectSource[]).map((source) => (
             <button
               key={source}
               onClick={() => handleCollect(source)}

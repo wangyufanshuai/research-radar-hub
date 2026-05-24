@@ -147,6 +147,52 @@ cve:
     backoff_max_seconds: 60.0
     retryable_status_codes: [429, 500, 502, 503, 504]
 
+nasa:
+  enabled: true
+  robots_required: false
+  ntrs:
+    enabled: true
+    base_url: "https://ntrs.nasa.gov/api/citations/search"
+    max_results_per_query: 20
+  techport:
+    enabled: false
+    base_url: "https://techport.nasa.gov/api/projects/search"
+    max_results_per_query: 20
+  rate_limit:
+    request_delay_seconds: 3.0
+    max_concurrent: 1
+    burst_limit: 5
+    burst_window_seconds: 60
+  retry:
+    max_retries: 2
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+ads:
+  enabled: false
+  base_url: "https://api.adsabs.harvard.edu/v1/search/query"
+  max_results_per_query: 20
+  robots_required: false
+  rate_limit:
+    request_delay_seconds: 3.0
+    max_concurrent: 1
+    burst_limit: 5
+    burst_window_seconds: 60
+  retry:
+    max_retries: 2
+    backoff_factor: 2.0
+    backoff_max_seconds: 60.0
+    retryable_status_codes: [429, 500, 502, 503, 504]
+
+paper_understanding:
+  enabled: true
+  download_pdfs: false
+  max_pdf_bytes: 5000000
+  max_pdf_pages: 5
+  timeout_seconds: 20
+  text_excerpt_chars: 6000
+
 research_radar:
   enabled: true
   lookback_days: 2
